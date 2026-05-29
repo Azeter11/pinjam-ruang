@@ -381,6 +381,69 @@ export async function deleteBooking(
   await db.execute('DELETE FROM bookings WHERE id = ?', [bookingId]);
 }
 
+// ─── GET BOOKING BY ID ────────────────────────────────────────────────────────
+export async function getBookingById(
+  bookingId: string,
+  userId: string,
+  isAdmin: boolean
+): Promise<any> {
+  const [bookings] = await db.execute<RowDataPacket[]>(`
+    SELECT 
+      b.*, 
+      u.id as user_id_join, u.name as user_name, u.email as user_email, u.role as user_role, u.faculty as user_faculty,
+      r.id as room_id_join, r.name as room_name, r.building as room_building, r.capacity as room_capacity
+    FROM bookings b
+    JOIN users u ON b.user_id = u.id
+    JOIN rooms r ON b.room_id = r.id
+    WHERE b.id = ?
+  `, [bookingId]);
+
+  if (bookings.length === 0) {
+    const err = new Error('Booking tidak ditemukan') as Error & { statusCode: number; code: string };
+    err.statusCode = 404;
+    err.code = 'BOOKING_NOT_FOUND';
+    throw err;
+  }
+
+  const booking = bookings[0];
+
+  // Check permission: only owner or admin can view
+  if (!isAdmin && booking.user_id !== userId) {
+    const err = new Error('Tidak memiliki izin untuk melihat booking ini') as Error & { statusCode: number; code: string };
+    err.statusCode = 403;
+    err.code = 'FORBIDDEN';
+    throw err;
+  }
+
+  const { 
+    user_id_join, user_name, user_email, user_role, user_faculty,
+    room_id_join, room_name, room_building, room_capacity,
+    ...bookingData 
+  } = booking;
+
+  if (bookingData.date instanceof Date) {
+    bookingData.date = bookingData.date.toISOString().split('T')[0];
+  }
+
+  return {
+    ...bookingData,
+    user: { 
+      id: user_id_join, 
+      name: user_name, 
+      email: user_email, 
+      role: user_role,
+      faculty: user_faculty,
+      created_at: booking.created_at || new Date().toISOString()
+    },
+    room: { 
+      id: room_id_join, 
+      name: room_name, 
+      building: room_building,
+      capacity: room_capacity
+    }
+  };
+}
+
 // ─── GET DASHBOARD STATS ──────────────────────────────────────────────────────
 export async function getDashboardStats(userId: string, role: string) {
   const isAdmin = role === 'admin';

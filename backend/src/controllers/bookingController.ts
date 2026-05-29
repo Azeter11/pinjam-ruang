@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from '../types';
 import { successResponse, errorResponse } from '../utils/response';
 import * as bookingService from '../services/bookingService';
 import { isValidTimeFormat, isValidTimeRange, isDateInFuture } from '../utils/dateHelper';
+import { generateBookingPDF } from '../utils/pdfGenerator';
 
 // ─── SCHEMAS ─────────────────────────────────────────────────────────────────
 export const createBookingSchema = z
@@ -181,6 +182,34 @@ export async function getAdminStats(
   try {
     const stats = await bookingService.getAdminStats();
     successResponse(res, stats, 'Statistik admin berhasil diambil');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function downloadBookingPDF(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const bookingId = req.params.id as string;
+    const userId = req.user!.userId;
+    const isAdmin = req.user!.role === 'admin';
+
+    // Get booking details
+    const booking = await bookingService.getBookingById(bookingId, userId, isAdmin);
+
+    // Check if booking is approved
+    if (booking.status !== 'approved') {
+      errorResponse(res, 'Hanya booking yang sudah di-approve yang bisa diunduh', 400, {
+        code: 'BOOKING_NOT_APPROVED',
+      });
+      return;
+    }
+
+    // Generate PDF
+    generateBookingPDF(booking, res);
   } catch (error) {
     next(error);
   }

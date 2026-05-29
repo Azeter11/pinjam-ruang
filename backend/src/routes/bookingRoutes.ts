@@ -11,6 +11,12 @@ router.get('/', authMiddleware, bookingController.getBookings);
 router.get('/stats', authMiddleware, bookingController.getDashboardStats);
 router.get('/check-conflict', bookingController.checkConflict);
 
+// Admin stats
+router.get('/admin/stats', authMiddleware, requireRole('admin'), bookingController.getAdminStats);
+
+// Download PDF report (only for approved bookings)
+router.get('/:id/pdf', authMiddleware, bookingController.downloadBookingPDF);
+
 // Mahasiswa, Dosen, Organisasi can create bookings
 router.post(
   '/',
