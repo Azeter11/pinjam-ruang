@@ -2,6 +2,7 @@ import { db } from '../config/db';
 import { Room, RoomFilters, PaginatedResponse } from '../types';
 import { RowDataPacket } from 'mysql2/promise';
 import { v4 as uuidv4 } from 'uuid';
+import { formatDateLocal } from '../utils/dateHelper';
 
 // ─── GET ALL ROOMS ───────────────────────────────────────────────────────────
 export async function getRooms(filters: RoomFilters): Promise<PaginatedResponse<Room>> {
@@ -85,6 +86,9 @@ export async function getRoomById(id: string): Promise<Room & { todayBookings: u
 
   const todayBookings = bookings.map(b => {
     const { user_name, user_email, user_role, ...bookingData } = b;
+    if (bookingData.date instanceof Date) {
+      bookingData.date = formatDateLocal(bookingData.date);
+    }
     return {
       ...bookingData,
       user: { name: user_name, email: user_email, role: user_role }
@@ -130,7 +134,7 @@ export async function getRoomSchedule(roomId: string, startDate?: string, endDat
   // Build query for approved bookings only (exclude completed)
   let query = `
     SELECT 
-      b.id, b.date, b.start_time, b.end_time, b.purpose,
+      b.id, b.date, b.start_time, b.end_time, b.purpose, b.status,
       u.name as user_name, u.email as user_email, u.role as user_role, u.faculty as user_faculty
     FROM bookings b
     JOIN users u ON b.user_id = u.id
@@ -163,7 +167,7 @@ export async function getRoomSchedule(roomId: string, startDate?: string, endDat
     // Convert date to string if it's a Date object
     let dateStr = b.date;
     if (b.date instanceof Date) {
-      dateStr = b.date.toISOString().split('T')[0];
+      dateStr = formatDateLocal(b.date);
     }
 
     return {

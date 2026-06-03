@@ -17,8 +17,10 @@ export const bookingService = {
     return response.data;
   },
 
-  createBooking: async (data: CreateBookingData): Promise<Booking> => {
-    const response = await api.post<Booking>('/api/bookings', data);
+  createBooking: async (data: FormData): Promise<Booking> => {
+    const response = await api.post<Booking>('/api/bookings', data, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
 

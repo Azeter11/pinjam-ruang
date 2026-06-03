@@ -13,7 +13,8 @@ export const createBookingSchema = z
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD'),
     start_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Format waktu harus HH:MM'),
     end_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Format waktu harus HH:MM'),
-    purpose: z.string().min(5, 'Tujuan peminjaman minimal 5 karakter'),
+    purpose: z.string().max(500, 'Catatan maksimal 500 karakter').optional().or(z.literal('')),
+    proposal_url: z.string().url('URL proposal tidak valid'),
   })
   .refine((data) => data.start_time < data.end_time, {
     message: 'Waktu mulai harus sebelum waktu selesai',

@@ -36,7 +36,7 @@ export function useDashboardStats() {
 export function useCreateBooking() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateBookingData) => bookingService.createBooking(data),
+    mutationFn: (data: FormData) => bookingService.createBooking(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });

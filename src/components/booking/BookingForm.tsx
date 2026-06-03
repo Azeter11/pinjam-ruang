@@ -53,7 +53,22 @@ export function BookingForm({ roomId, roomName, onSuccess }: BookingFormProps) {
 
   const handleConfirm = () => {
     if (!formValues) return;
-    createBooking.mutate(formValues, {
+
+    const formData = new FormData();
+    formData.append('room_id', formValues.room_id);
+    formData.append('date', formValues.date);
+    formData.append('start_time', formValues.start_time);
+    formData.append('end_time', formValues.end_time);
+    
+    if (formValues.purpose) {
+      formData.append('purpose', formValues.purpose);
+    }
+    
+    if (formValues.proposal && formValues.proposal.length > 0) {
+      formData.append('proposal', formValues.proposal[0]);
+    }
+
+    createBooking.mutate(formData, {
       onSuccess: () => {
         setShowConfirm(false);
         onSuccess?.();
@@ -121,7 +136,7 @@ export function BookingForm({ roomId, roomName, onSuccess }: BookingFormProps) {
             {!conflict.isFetching && conflict.data?.hasConflict && (
               <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
                 <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                <span>Jadwal ini sudah dipesan. Pilih waktu lain.</span>
+                <span>Waktu tersebut sudah terbooking atau peminjaman belum selesai. Silakan pilih waktu yang lain.</span>
               </div>
             )}
             {!conflict.isFetching && conflict.data && !conflict.data.hasConflict && (
@@ -134,11 +149,33 @@ export function BookingForm({ roomId, roomName, onSuccess }: BookingFormProps) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Keperluan / Tujuan</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Proposal Peminjaman / Surat Perizinan <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="file"
+            accept=".pdf"
+            {...register('proposal')}
+            className="w-full text-sm text-gray-500
+              file:mr-4 file:py-2.5 file:px-4
+              file:rounded-lg file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100
+              border border-gray-200 rounded-lg p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
+          />
+          <p className="text-[11px] text-gray-400 mt-1">Hanya file PDF dengan ukuran maksimal 10MB.</p>
+          {errors.proposal && <p className="text-red-500 text-xs mt-1">{(errors.proposal as any).message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Catatan <span className="text-gray-400 font-normal text-xs">(opsional)</span>
+          </label>
           <textarea
             {...register('purpose')}
             rows={3}
-            placeholder="Jelaskan keperluan peminjaman ruangan..."
+            placeholder="Tambahkan catatan peminjaman jika diperlukan..."
             className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           />
           {errors.purpose && <p className="text-red-500 text-xs mt-1">{errors.purpose.message}</p>}
@@ -174,9 +211,17 @@ export function BookingForm({ roomId, roomName, onSuccess }: BookingFormProps) {
                 <span className="font-medium">{formValues.start_time} – {formValues.end_time}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Keperluan</span>
-                <span className="font-medium text-right max-w-[60%]">{formValues.purpose}</span>
+                <span className="text-gray-500">Proposal</span>
+                <span className="font-medium truncate max-w-[60%]" title={formValues.proposal?.[0]?.name}>
+                  {formValues.proposal?.[0]?.name || 'Proposal.pdf'}
+                </span>
               </div>
+              {formValues.purpose && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Catatan</span>
+                  <span className="font-medium text-right max-w-[60%] truncate">{formValues.purpose}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">

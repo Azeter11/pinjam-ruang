@@ -96,8 +96,24 @@ export function BookingCard({ booking, actions, showDownload = true }: BookingCa
             style={{ background: '#fafafa' }}>
             <FileText size={12} className="text-gray-400" />
           </div>
-          <span className="truncate text-gray-500">{booking.purpose}</span>
+          <span className="truncate text-gray-500">{booking.purpose || 'Tidak ada catatan'}</span>
         </div>
+        {booking.proposal_url && (
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+              style={{ background: '#e0f2fe' }}>
+              <FileText size={12} className="text-sky-500" />
+            </div>
+            <a
+              href={booking.proposal_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-600 hover:text-sky-800 font-semibold underline truncate"
+            >
+              Unduh / Lihat Proposal
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Download PDF */}

@@ -27,7 +27,14 @@ export const bookingSchema = z
     date: z.string().min(1, 'Pilih tanggal'),
     start_time: z.string().min(1, 'Pilih jam mulai'),
     end_time: z.string().min(1, 'Pilih jam selesai'),
-    purpose: z.string().min(10, 'Keperluan minimal 10 karakter').max(500, 'Keperluan maksimal 500 karakter'),
+    purpose: z.string().max(500, 'Catatan maksimal 500 karakter').optional().or(z.literal('')),
+    proposal: z.any()
+      .refine((files) => files && files.length > 0, 'Proposal peminjaman wajib diunggah (PDF)')
+      .refine((files) => {
+        if (!files || files.length === 0) return true;
+        const file = files[0];
+        return file.type === 'application/pdf';
+      }, 'File harus berupa dokumen PDF'),
   })
   .refine(
     (data) => {

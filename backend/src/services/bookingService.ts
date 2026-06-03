@@ -1,7 +1,7 @@
 import { Server as SocketServer } from 'socket.io';
 import { db } from '../config/db';
 import { Booking, BookingFilters, ConflictCheckParams, PaginatedResponse } from '../types';
-import { checkTimeConflict, getConflictingBookings } from '../utils/dateHelper';
+import { checkTimeConflict, getConflictingBookings, formatDateLocal } from '../utils/dateHelper';
 import { RowDataPacket } from 'mysql2/promise';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,7 +14,7 @@ export function setSocketIO(socketIO: SocketServer) {
 // ─── AUTO UPDATE COMPLETED BOOKINGS ───────────────────────────────────────────
 export async function autoUpdateCompletedBookings(): Promise<void> {
   const now = new Date();
-  const currentDate = now.toISOString().split('T')[0];
+  const currentDate = formatDateLocal(now);
   const currentTime = now.toTimeString().split(' ')[0].substring(0, 5); // HH:MM format
 
   // Update bookings yang sudah lewat waktunya dari approved ke completed
@@ -97,7 +97,7 @@ export async function getBookings(
     
     // Convert date object to string YYYY-MM-DD
     if (bookingData.date instanceof Date) {
-      bookingData.date = bookingData.date.toISOString().split('T')[0];
+      bookingData.date = formatDateLocal(bookingData.date);
     }
     
     return {
@@ -120,21 +120,21 @@ export async function getBookings(
 
 // ─── CHECK CONFLICT ───────────────────────────────────────────────────────────
 export async function checkConflict(params: ConflictCheckParams): Promise<{
-  isConflict: boolean;
+  hasConflict: boolean;
   conflictingBookings: Booking[];
 }> {
   const { room_id, date, start_time, end_time } = params;
 
   const [existingBookings] = await db.execute<RowDataPacket[]>(
-    'SELECT * FROM bookings WHERE room_id = ? AND date = ? AND status = ?',
-    [room_id, date, 'approved']
+    "SELECT * FROM bookings WHERE room_id = ? AND date = ? AND status = 'approved'",
+    [room_id, date]
   );
 
   const bookings = (existingBookings ?? []) as Booking[];
   const conflictingBookings = getConflictingBookings(bookings, start_time, end_time);
 
   return {
-    isConflict: conflictingBookings.length > 0,
+    hasConflict: conflictingBookings.length > 0,
     conflictingBookings,
   };
 }
@@ -146,9 +146,10 @@ export async function createBooking(input: {
   date: string;
   start_time: string;
   end_time: string;
-  purpose: string;
+  purpose?: string | null;
+  proposal_url: string;
 }): Promise<Booking> {
-  const { room_id, date, start_time, end_time, user_id, purpose } = input;
+  const { room_id, date, start_time, end_time, user_id, purpose, proposal_url } = input;
 
   // 1. Check room exists and is available
   const [rooms] = await db.execute<RowDataPacket[]>(
@@ -174,8 +175,8 @@ export async function createBooking(input: {
 
   // 2. Check time conflict
   const [existingBookings] = await db.execute<RowDataPacket[]>(
-    'SELECT * FROM bookings WHERE room_id = ? AND date = ? AND status = ?',
-    [room_id, date, 'approved']
+    "SELECT * FROM bookings WHERE room_id = ? AND date = ? AND status = 'approved'",
+    [room_id, date]
   );
 
   const hasConflict = checkTimeConflict(
@@ -186,7 +187,7 @@ export async function createBooking(input: {
 
   if (hasConflict) {
     const err = new Error(
-      'Ruangan sudah dipesan pada jam tersebut'
+      'Waktu tersebut sudah terbooking atau peminjaman belum selesai. Silakan pilih waktu yang lain.'
     ) as Error & { statusCode: number; code: string };
     err.statusCode = 409;
     err.code = 'TIME_CONFLICT';
@@ -196,8 +197,8 @@ export async function createBooking(input: {
   // 3. Insert booking
   const id = uuidv4();
   await db.execute(
-    'INSERT INTO bookings (id, user_id, room_id, date, start_time, end_time, purpose, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, user_id, room_id, date, start_time, end_time, purpose, 'pending']
+    'INSERT INTO bookings (id, user_id, room_id, date, start_time, end_time, purpose, proposal_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, user_id, room_id, date, start_time, end_time, purpose || null, proposal_url, 'pending']
   );
 
   // Get the created booking with relations
@@ -220,7 +221,7 @@ export async function createBooking(input: {
   } = row;
   
   if (bookingData.date instanceof Date) {
-    bookingData.date = bookingData.date.toISOString().split('T')[0];
+    bookingData.date = formatDateLocal(bookingData.date);
   }
 
   const newBooking = {
@@ -302,7 +303,7 @@ export async function updateBookingStatus(
   } = row;
 
   if (bookingData.date instanceof Date) {
-    bookingData.date = bookingData.date.toISOString().split('T')[0];
+    bookingData.date = formatDateLocal(bookingData.date);
   }
 
   const updatedBooking = {
@@ -422,7 +423,7 @@ export async function getBookingById(
   } = booking;
 
   if (bookingData.date instanceof Date) {
-    bookingData.date = bookingData.date.toISOString().split('T')[0];
+    bookingData.date = formatDateLocal(bookingData.date);
   }
 
   return {

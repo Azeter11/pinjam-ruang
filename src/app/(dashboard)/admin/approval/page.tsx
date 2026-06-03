@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, CheckCircle, XCircle, Calendar, Clock, User, Eye, MapPin, FileText, X } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Calendar, Clock, User, Eye, MapPin, FileText, X, Download } from 'lucide-react';
 import { useAllBookings, useUpdateBookingStatus } from '@/hooks/useBookings';
 import { BookingStatusBadge } from '@/components/booking/BookingStatusBadge';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
@@ -107,7 +107,7 @@ export default function AdminApprovalPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-                    {['Pemohon', 'Ruangan', 'Jadwal', 'Keperluan', 'Status', 'Aksi'].map(h => (
+                    {['Pemohon', 'Ruangan', 'Jadwal', 'Catatan', 'Status', 'Aksi'].map(h => (
                       <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
@@ -155,9 +155,9 @@ export default function AdminApprovalPage() {
                         </div>
                       </td>
 
-                      {/* Keperluan */}
+                      {/* Catatan */}
                       <td className="px-5 py-4 max-w-[160px]">
-                        <p className="text-xs text-gray-600 truncate">{booking.purpose}</p>
+                        <p className="text-xs text-gray-600 truncate">{booking.purpose || '–'}</p>
                       </td>
 
                       {/* Status */}
@@ -288,17 +288,43 @@ export default function AdminApprovalPage() {
                 </div>
               ))}
 
-              {/* Keperluan */}
+              {/* Proposal Peminjaman */}
+              {detailModal.proposal_url && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
+                      <Download size={14} className="text-blue-500" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 text-sm">Proposal / Surat Izin</h4>
+                  </div>
+                  <div className="rounded-xl p-4 text-sm text-gray-700 flex items-center justify-between"
+                    style={{ background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                    <span className="font-medium text-gray-900 truncate max-w-[60%]">
+                      {detailModal.proposal_url.split('/').pop() || 'Proposal.pdf'}
+                    </span>
+                    <a
+                      href={detailModal.proposal_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+                    >
+                      <Download size={12} /> Unduh PDF
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Catatan */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
                     <FileText size={14} className="text-blue-500" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 text-sm">Keperluan</h4>
+                  <h4 className="font-semibold text-gray-900 text-sm">Catatan Peminjaman</h4>
                 </div>
                 <div className="rounded-xl p-4 text-sm text-gray-700 leading-relaxed"
                   style={{ background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-                  {detailModal.purpose}
+                  {detailModal.purpose || 'Tidak ada catatan.'}
                 </div>
               </div>
 

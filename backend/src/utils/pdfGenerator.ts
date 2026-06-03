@@ -186,13 +186,13 @@ export function generateBookingPDF(booking: BookingWithDetails, res: Response): 
   doc.fontSize(13)
      .font('Times-Bold')
      .fillColor(primaryColor)
-     .text('III. KEPERLUAN PEMINJAMAN', 60)
+     .text('III. CATATAN PEMINJAMAN', 60)
      .moveDown(0.5);
 
   doc.fontSize(10)
      .font('Times-Roman')
      .fillColor('#111827')
-     .text(booking.purpose, 80, doc.y, { 
+     .text(booking.purpose || 'Tidak ada catatan.', 80, doc.y, { 
        width: 455,
        align: 'justify',
        lineGap: 3

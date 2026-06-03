@@ -36,7 +36,8 @@ export interface Booking {
   date: string;
   start_time: string;
   end_time: string;
-  purpose: string;
+  purpose?: string | null;
+  proposal_url: string;
   status: BookingStatus;
   created_at: string;
   // joined relations

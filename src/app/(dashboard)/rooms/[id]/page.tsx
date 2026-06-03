@@ -127,7 +127,7 @@ export default function RoomDetailPage() {
 
         {/* Booking form */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-6">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-6 z-20">
             <h2 className="font-semibold text-gray-900 mb-4">Form Peminjaman</h2>
             {room.status !== 'available' ? (
               <div className="text-center py-6 text-gray-500 text-sm">

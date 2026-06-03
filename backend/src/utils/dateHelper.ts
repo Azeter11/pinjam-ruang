@@ -54,3 +54,11 @@ export function isDateInFuture(date: string): boolean {
   const bookingDate = new Date(date);
   return bookingDate >= today;
 }
+
+/**
+ * Format Date object to YYYY-MM-DD using local time
+ * Prevents timezone offset issues when using toISOString()
+ */
+export function formatDateLocal(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
