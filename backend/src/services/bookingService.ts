@@ -87,19 +87,19 @@ export async function getBookings(
   }
 
   const [rows] = await db.execute<RowDataPacket[]>(query, params);
-  
+
   const data = rows.map(row => {
-    const { 
+    const {
       user_id_join, user_name, user_email, user_role, user_faculty,
       room_id_join, room_name, room_building, room_capacity,
-      ...bookingData 
+      ...bookingData
     } = row;
-    
+
     // Convert date object to string YYYY-MM-DD
     if (bookingData.date instanceof Date) {
       bookingData.date = formatDateLocal(bookingData.date);
     }
-    
+
     return {
       ...bookingData,
       user: { id: user_id_join, name: user_name, email: user_email, role: user_role, faculty: user_faculty },
@@ -214,12 +214,12 @@ export async function createBooking(input: {
   `, [id]);
 
   const row = createdRows[0];
-  const { 
+  const {
     user_id_join, user_name, user_email, user_role,
     room_id_join, room_name, room_building,
-    ...bookingData 
+    ...bookingData
   } = row;
-  
+
   if (bookingData.date instanceof Date) {
     bookingData.date = formatDateLocal(bookingData.date);
   }
@@ -296,10 +296,10 @@ export async function updateBookingStatus(
   `, [bookingId]);
 
   const row = updatedRows[0];
-  const { 
+  const {
     user_id_join, user_name, user_email, user_role,
     room_id_join, room_name, room_building,
-    ...bookingData 
+    ...bookingData
   } = row;
 
   if (bookingData.date instanceof Date) {
@@ -416,10 +416,10 @@ export async function getBookingById(
     throw err;
   }
 
-  const { 
+  const {
     user_id_join, user_name, user_email, user_role, user_faculty,
     room_id_join, room_name, room_building, room_capacity,
-    ...bookingData 
+    ...bookingData
   } = booking;
 
   if (bookingData.date instanceof Date) {
@@ -428,17 +428,17 @@ export async function getBookingById(
 
   return {
     ...bookingData,
-    user: { 
-      id: user_id_join, 
-      name: user_name, 
-      email: user_email, 
+    user: {
+      id: user_id_join,
+      name: user_name,
+      email: user_email,
       role: user_role,
       faculty: user_faculty,
       created_at: booking.created_at || new Date().toISOString()
     },
-    room: { 
-      id: room_id_join, 
-      name: room_name, 
+    room: {
+      id: room_id_join,
+      name: room_name,
       building: room_building,
       capacity: room_capacity
     }
@@ -448,15 +448,15 @@ export async function getBookingById(
 // ─── GET DASHBOARD STATS ──────────────────────────────────────────────────────
 export async function getDashboardStats(userId: string, role: string) {
   const isAdmin = role === 'admin';
-  
+
   let queryBase = 'FROM bookings WHERE 1=1';
   const params: any[] = [];
-  
+
   if (!isAdmin) {
     queryBase += ' AND user_id = ?';
     params.push(userId);
   }
-  
+
   const [totalRows] = await db.execute<RowDataPacket[]>(`SELECT COUNT(*) as count ${queryBase}`, params);
   const [pendingRows] = await db.execute<RowDataPacket[]>(`SELECT COUNT(*) as count ${queryBase} AND status = 'pending'`, params);
   const [approvedRows] = await db.execute<RowDataPacket[]>(`SELECT COUNT(*) as count ${queryBase} AND status = 'approved'`, params);
@@ -489,7 +489,7 @@ export async function getAdminStats() {
   // 4. Approval rate
   const [approvedRows] = await db.execute<RowDataPacket[]>("SELECT COUNT(*) as count FROM bookings WHERE status = 'approved'");
   const approved = approvedRows[0]?.count ?? 0;
-  
+
   const [completedRows] = await db.execute<RowDataPacket[]>("SELECT COUNT(*) as count FROM bookings WHERE status = 'completed'");
   const completed = completedRows[0]?.count ?? 0;
 

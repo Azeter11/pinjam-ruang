@@ -2,8 +2,8 @@
 -- PINJAM RUANG — MySQL Schema
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS pinjam_ruang;
-USE pinjam_ruang;
+CREATE DATABASE IF NOT EXISTS pinjam_ruang2;
+USE pinjam_ruang2;
 
 -- USERS
 CREATE TABLE IF NOT EXISTS users (
@@ -73,3 +73,24 @@ INSERT IGNORE INTO rooms (id, name, building, capacity, facility, status) VALUES
   (UUID(), 'Ruang Rapat 101', 'Gedung C', 20, '["AC", "proyektor", "whiteboard"]', 'available'),
   (UUID(), 'Ruang Seminar', 'Gedung A', 100, '["proyektor", "AC", "mic", "sound system"]', 'available'),
   (UUID(), 'Lab Jaringan', 'Gedung B', 30, '["komputer", "AC", "router", "internet"]', 'maintenance');
+
+-- ============================================================
+-- MIGRATION & UPDATE EXISTING DATA
+-- ============================================================
+-- Bagian ini memastikan bahwa jika script dijalankan pada database 
+-- yang sudah ada sebelumnya, struktur dan datanya akan diperbarui.
+
+-- 1. Pastikan kolom status memiliki opsi 'completed' pada tabel bookings
+ALTER TABLE bookings 
+MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'completed') 
+NOT NULL DEFAULT 'pending';
+
+-- 2. Update semua booking yang sudah lewat waktunya menjadi 'completed'
+UPDATE bookings 
+SET status = 'completed' 
+WHERE status = 'approved' 
+AND (
+  date < CURDATE() 
+  OR (date = CURDATE() AND end_time < CURTIME())
+);
+

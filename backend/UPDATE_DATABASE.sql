@@ -5,13 +5,13 @@
 -- dan belum memiliki status 'completed'
 -- ============================================================
 
-USE pinjam_ruang;
+USE pinjam_ruang2;
 
 -- 1. CEK STATUS SAAT INI
 -- Jalankan query ini untuk melihat status yang tersedia
 SELECT COLUMN_TYPE 
 FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_SCHEMA = 'pinjam_ruang' 
+WHERE TABLE_SCHEMA = 'pinjam_ruang2' 
   AND TABLE_NAME = 'bookings' 
   AND COLUMN_NAME = 'status';
 

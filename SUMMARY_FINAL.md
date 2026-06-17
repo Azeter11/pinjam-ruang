@@ -50,12 +50,12 @@ Posisi: Di bawah info ruangan (foto, nama, fasilitas)
 ### **LANGKAH 1: Update Database**
 ```bash
 # Jalankan di terminal
-mysql -u root -p pinjam_ruang < backend/UPDATE_DATABASE.sql
+mysql -u root -p pinjam_ruang2 < backend/UPDATE_DATABASE.sql
 ```
 
 Atau manual di MySQL:
 ```sql
-USE pinjam_ruang;
+USE pinjam_ruang2;
 
 ALTER TABLE bookings 
 MODIFY COLUMN status ENUM('pending', 'approved', 'rejected', 'completed') 
@@ -207,7 +207,7 @@ SELECT * FROM bookings WHERE status = 'approved' AND date >= CURDATE();
 -- Cek apakah status completed sudah ada
 SELECT COLUMN_TYPE 
 FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_SCHEMA = 'pinjam_ruang' 
+WHERE TABLE_SCHEMA = 'pinjam_ruang2' 
   AND TABLE_NAME = 'bookings' 
   AND COLUMN_NAME = 'status';
 ```

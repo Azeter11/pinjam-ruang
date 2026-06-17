@@ -10,7 +10,7 @@ const envSchema = z.object({
   DB_HOST: z.string().default('localhost'),
   DB_USER: z.string().default('root'),
   DB_PASSWORD: z.string().default(''),
-  DB_NAME: z.string().default('pinjam_ruang'),
+  DB_NAME: z.string().default('pinjam_ruang2'),
   DB_PORT: z.string().transform(Number).default('3306'),
   
   JWT_SECRET: z.string().min(32, { message: 'JWT_SECRET must be at least 32 characters' }),
